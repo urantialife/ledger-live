@@ -276,7 +276,7 @@ const linkingOptions = {
               },
               [NavigatorName.Discover]: {
                 screens:
-                  Platform.OS !== "ios"
+                  Platform.OS === "ios"
                     ? {}
                     : {
                         /**
