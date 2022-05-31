@@ -1,14 +1,11 @@
 // @flow
 
-import React, { useMemo, useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { Trans } from "react-i18next";
 import { useNavigation } from "@react-navigation/native";
-import { usePlatformApp } from "@ledgerhq/live-common/lib/platform/PlatformAppProvider";
-import { filterPlatformApps } from "@ledgerhq/live-common/lib/platform/PlatformAppProvider/helpers";
 import type { AccountLike, Account } from "@ledgerhq/live-common/lib/types";
 import type { AppManifest } from "@ledgerhq/live-common/lib/platform/types";
-import useEnv from "@ledgerhq/live-common/lib/hooks/useEnv";
 
 import { useBanner } from "../../components/banners/hooks";
 import TrackScreen from "../../analytics/TrackScreen";
@@ -20,6 +17,7 @@ import type { Props as DisclaimerProps } from "./DAppDisclaimer";
 import CatalogBanner from "./CatalogBanner";
 import AppCard from "./AppCard";
 import AnimatedHeaderView from "../../components/AnimatedHeader";
+import { useFilteredManifests } from "./shared";
 
 type RouteParams = {
   defaultAccount: ?AccountLike,
@@ -35,22 +33,7 @@ const PlatformCatalog = ({ route }: { route: { params: RouteParams } }) => {
   const { platform, ...routeParams } = route.params ?? {};
   const navigation = useNavigation();
 
-  const { manifests } = usePlatformApp();
-  const experimental = useEnv("PLATFORM_EXPERIMENTAL_APPS");
-
-  const filteredManifests = useMemo(() => {
-    const branches = [
-      "stable",
-      "soon",
-      ...(experimental ? ["experimental"] : []),
-    ];
-
-    return filterPlatformApps(Array.from(manifests.values()), {
-      version: "0.0.1",
-      platform: "mobile",
-      branches,
-    });
-  }, [manifests, experimental]);
+  const filteredManifests = useFilteredManifests();
 
   // Disclaimer State
   const [disclaimerOpts, setDisclaimerOpts] = useState<DisclaimerOpts>(null);
