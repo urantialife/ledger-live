@@ -22,13 +22,13 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
       - uses: actions/checkout@v3
-        if: ${{ github.event_name == 'workflow_dispatch'|| github.event_name == 'workflow_run' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         with:
           ref: ${{ github.event.inputs.ref || 'release' }}
           token: ${{ secrets.GH_PAT }}
       - name: set ref
         id: ref
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_run' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           echo "::set-output name=ref::${{ github.event.inputs.ref || 'release' }}"
 
@@ -95,7 +95,7 @@ jobs:
         run: |
           git push origin ${{ github.ref_name }} --follow-tags
       - name: push changes (other events)
-        if: ${{ github.event_name == 'workflow_dispatch'|| github.event_name == 'workflow_run' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           git push origin ${{ steps.ref.outputs.ref }} --follow-tags
 
