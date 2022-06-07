@@ -8,11 +8,12 @@ import {
   getMainWindowAsync,
   loadWindow,
 } from "./window-lifecycle";
-import "./internal-lifecycle";
+import { setUserId } from "./internal-lifecycle";
 import resolveUserDataDirectory from "~/helpers/resolveUserDataDirectory";
 import db from "./db";
 import debounce from "lodash/debounce";
 import logger from "~/logger";
+import sentry from "~/sentry/main";
 
 require("@electron/remote/main").initialize();
 
@@ -128,6 +129,13 @@ app.on("ready", async () => {
 
   const windowParams = await db.getKey("windowParams", "MainWindow", {});
   const settings = await db.getKey("app", "settings");
+  const user = await db.getKey("app", "user");
+
+  const userId = user?.id;
+  if (userId) {
+    setUserId(userId);
+    sentry(() => settings?.sentryLogs, userId);
+  }
 
   const window = await createMainWindow(windowParams, settings);
 

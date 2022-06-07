@@ -13,6 +13,9 @@ const healthChecksTasks = require("./health-checks");
 
 require("dotenv").config();
 
+const releaseSentryDSN =
+  "https://9158206c044848a393bbc1c4d23dd1f2@o118392.ingest.sentry.io/6325578";
+
 const rootFolder = "../../";
 let verbose = false;
 
@@ -75,6 +78,8 @@ const buildTasks = args => [
       ? "Bundling and publishing the electron application"
       : "Bundling the electron application",
     task: async () => {
+      const withReleaseSentry = !!args.publish;
+
       const commands = ["dist:internal", "--"];
       if (args.dir) commands.push("--dir");
       if (args.nightly) {
@@ -92,12 +97,7 @@ const buildTasks = args => [
 
       // Using npm here because pnpm will refuse to rebuild cached modules.
       await exec("npm", ["run", ...commands], {
-        env: !args.ci
-          ? {
-              SENTRY_URL:
-                "https://db8f5b9b021048d4a401f045371701cb@o118392.ingest.sentry.io/274561",
-            }
-          : {},
+        env: withReleaseSentry ? { SENTRY_URL: releaseSentryDSN } : {},
       });
     },
   },

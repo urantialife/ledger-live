@@ -1,6 +1,6 @@
 // @flow
+import * as Sentry from "@sentry/node";
 import { unsubscribeSetup } from "./live-common-setup";
-
 import { setEnvUnsafe } from "@ledgerhq/live-common/lib/env";
 import { serializeError } from "@ledgerhq/errors";
 import { getCurrencyBridge } from "@ledgerhq/live-common/lib/bridge";
@@ -10,13 +10,13 @@ import logger from "~/logger";
 import LoggerTransport from "~/logger/logger-transport-internal";
 
 import { executeCommand, unsubscribeCommand, unsubscribeAllCommands } from "./commandHandler";
-import sentry from "~/sentry/node";
-// import uuid from 'uuid/v4'
+import sentry from "~/sentry/internal";
 
 process.on("exit", () => {
   logger.debug("exiting process, unsubscribing all...");
   unsubscribeSetup();
   unsubscribeAllCommands();
+  Sentry.close(2000);
 });
 
 logger.add(new LoggerTransport());
@@ -71,7 +71,12 @@ process.on("message", m => {
 
     case "sentryLogsChanged": {
       const { payload } = m;
-      sentryEnabled = payload.value;
+      sentryEnabled = payload;
+      break;
+    }
+
+    case "internalCrashTest": {
+      logger.critical(new Error("CrashTestInternal"));
       break;
     }
 

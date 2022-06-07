@@ -1,5 +1,4 @@
 // @flow
-
 import { app, ipcMain } from "electron";
 import path from "path";
 import rimraf from "rimraf";
@@ -24,8 +23,12 @@ const cleanUpBeforeClosingSync = () => {
   rimraf.sync(path.resolve(LEDGER_CONFIG_DIRECTORY, "sqlite/*.log"));
 };
 
-const sentryEnabled = false;
-const userId = "TODO";
+let sentryEnabled = null;
+let userId = null;
+
+export function setUserId(id) {
+  userId = id;
+}
 
 const spawnCoreProcess = () => {
   const env = {
@@ -35,7 +38,7 @@ const spawnCoreProcess = () => {
     IS_INTERNAL_PROCESS: 1,
     LEDGER_CONFIG_DIRECTORY,
     LEDGER_LIVE_SQLITE_PATH,
-    INITIAL_SENTRY_ENABLED: sentryEnabled,
+    INITIAL_SENTRY_ENABLED: !!sentryEnabled,
     SENTRY_USER_ID: userId,
   };
 
@@ -136,15 +139,18 @@ function handleGlobalInternalMessage(payload) {
   }
 }
 
-// FIXME this should be a done with a env instead.
-/*
-ipcMain.on('sentryLogsChanged', (event, payload) => {
-  sentryEnabled = payload.value
-  const p = internalProcess
-  if (!p) return
-  p.send({ type: 'sentryLogsChanged', payload })
-})
-*/
+ipcMain.on("sentryLogsChanged", (event, payload) => {
+  sentryEnabled = payload;
+  const p = internal.process;
+  if (!p) return;
+  p.send({ type: "sentryLogsChanged", payload });
+});
+
+ipcMain.on("internalCrashTest", () => {
+  const p = internal.process;
+  if (!p) return;
+  p.send({ type: "internalCrashTest" });
+});
 
 ipcMain.on("setEnv", async (event, env) => {
   const { name, value } = env;
