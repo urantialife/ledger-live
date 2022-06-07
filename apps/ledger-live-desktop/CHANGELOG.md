@@ -1,5 +1,11 @@
 # ledger-live-desktop
 
+## 2.43.0-updater.1
+
+### Patch Changes
+
+- 3ae999f35: autoupdate trigger
+
 ## 2.43.0-updater.0
 
 ### Minor Changes
